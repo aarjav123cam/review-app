@@ -1,0 +1,27 @@
+steps:
+  # Build the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      "build",
+      "--build-arg", "PROJECT_ID=$_PROJECT_ID",
+
+      "--network=cloudbuild",
+      "-t", "europe-docker.pkg.dev/$PROJECT_ID/docker/$_IMAGE_NAME:$COMMIT_SHA",
+      "-f", "./Dockerfile",
+      "."
+    ]
+
+  # Tag the image with the 'latest' tag
+  - name: "gcr.io/cloud-builders/docker"
+    args:     [ "tag", "europe-docker.pkg.dev/$PROJECT_ID/docker/$_IMAGE_NAME:$COMMIT_SHA",
+                "europe-docker.pkg.dev/$PROJECT_ID/docker/$_IMAGE_NAME:latest" ]
+
+images:
+  - "europe-docker.pkg.dev/$PROJECT_ID/docker/$_IMAGE_NAME:$COMMIT_SHA"
+  - "europe-docker.pkg.dev/$PROJECT_ID/docker/$_IMAGE_NAME:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  env:
+    - DOCKER_CLI_EXPERIMENTAL=enabled
+
