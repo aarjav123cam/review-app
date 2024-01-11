@@ -3,3 +3,6 @@ uvicorn
 python-multipart
 httpx
 twilio
+python-dotenv
+fastapi-authlib
+jinja2
