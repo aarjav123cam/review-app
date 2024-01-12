@@ -1,19 +1,112 @@
+from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi import File
 from fastapi.templating import Jinja2Templates
 
 import csv
 import httpx
 from fastapi import UploadFile
 import os
+from fastapi import FastAPI, Request
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+#from starlette.requests import Request
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import HTMLResponse, RedirectResponse
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from dotenv import load_dotenv
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+
+load_dotenv()  # This loads the environment variables from .env
+
+secret_key = os.getenv("SECRET_KEY")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 account_sid = os.getenv("TWILIO_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-
 app = FastAPI()
 
+app.add_middleware(ProxyHeadersMiddleware)
+app.add_middleware(SessionMiddleware, secret_key=secret_key)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*.a.run.app"])
+
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+oauth = OAuth()
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    client_kwargs={
+        'scope': 'email openid profile'
+    }
+)
+
+
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("/")
+def index(request: Request):
+    user = request.session.get('user')
+    if user:
+        return RedirectResponse('welcome')
+    message = request.query_params.get('message', '')
+    return templates.TemplateResponse(
+        name="home.html",
+        context={"request": request, "message": message}
+    )
+
+
+@app.get('/welcome')
+def welcome(request: Request):
+    user = request.session.get('user')
+    if not user:
+        return RedirectResponse('/')
+    return templates.TemplateResponse(
+        name='welcome.html',
+        context={'request': request, 'user': user}
+    )
+
+
+@app.get("/login")
+async def login(request: Request):
+    url = request.url_for('auth')
+    return await oauth.google.authorize_redirect(request, url)
+
+
+# Define a list of allowed email addresses
+ALLOWED_EMAILS = ["aarjav.jain@gmail.com", "mojamil2000@gmail.com"]
+
+@app.get('/auth', name='auth')
+async def auth(request: Request):
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError as e:
+        return templates.TemplateResponse(
+            name='error.html',
+            context={'request': request, 'error': e.error}
+        )
+
+    user = token.get('userinfo')
+
+    if user and user.get("email") in ALLOWED_EMAILS:
+        request.session['user'] = dict(user)
+        return RedirectResponse(url='welcome')
+    else:
+        # Log out the user and redirect to the home page with an unauthorized message
+        request.session.pop('user', None)  # Clear user data from the session
+        return RedirectResponse(url='/?message=unauthorized')
+
+@app.get('/logout')
+def logout(request: Request):
+    request.session.pop('user')
+    return RedirectResponse('/')
 
 
 async def send_sms_async(to, body):
@@ -58,24 +151,4 @@ async def create_upload_files(
 ):
     for file in files:
         await process_csv(file)
-    #process_csv_files(files)
     return {"filenames": [file.filename for file in files]}
-
-
-@app.get("/")
-async def main():
-    content = """
-<html>    
-<head>
-    <title>Upload CSV File</title>
-    <link href="/static/style.css" rel="stylesheet">
-</head>    
-<body>
-<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple accept=".csv">
-<input type="submit">
-</form>
-</body>
-</html>
-    """
-    return HTMLResponse(content=content)
