@@ -5,14 +5,14 @@ export IDENTIFIER=twilio-app
 export CLOUD_RUN_LOCATION=europe-west2
 IMAGE_NAME=twilio-app
 
-localbuild: local-build-image run
+localbuild: get-secrets local-build-image run
 cloudbuild: get-secrets build-image
 cloudbuild-and-deploy: get-secrets build-image deploy-image
 
 # Step to build the Docker image
 local-build-image:
 	podman build -t $(IMAGE_NAME) \
-	--build-arg TWILIO_SID=$(TWILIO_SID),TWILIO_AUTH_TOKEN=$(TWILIO_AUTH_TOKEN) \
+	--build-arg TWILIO_SID=$(TWILIO_SID),TWILIO_AUTH_TOKEN=$(TWILIO_AUTH_TOKEN),GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID),GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET),SECRET_KEY=$(SECRET_KEY) \
 	..
 
 

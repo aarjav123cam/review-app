@@ -1,3 +1,29 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <title>Home Page</title>-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}" />-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class="container">-->
+<!--    <div class="header">-->
+<!--        <h4>FastAPI with Google Oauth</h4>-->
+<!--        <div class="img-box">-->
+<!--            <img class="img" src="{{ url_for('static', path='icons/avatar.png') }}" />-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    {% if message %}-->
+<!--    <div class="message">-->
+<!--        <p>{{ message }}</p>-->
+<!--    </div>-->
+<!--    {% endif %}-->
+<!--    <a href="/login" class="google-btn">-->
+<!--        <div class="google-icon"></div>-->
+<!--        <span class="btn-text">Sign in with Gmail</span>-->
+<!--    </a>-->
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,9 +33,9 @@
 <body>
 <div class="container">
     <div class="header">
-        <h4>FastAPI with Google Oauth</h4>
+        <h4>Review app</h4>
         <div class="img-box">
-            <img class="img" src="{{ url_for('static', path='icons/avatar.png') }}" />
+            <img class="img" src="{{ url_for('static', path='icons/avatar.png') }}" alt="Avatar" />
         </div>
     </div>
     {% if message %}
@@ -18,7 +44,6 @@
     </div>
     {% endif %}
     <a href="/login" class="google-btn">
-        <div class="google-icon"></div>
         <span class="btn-text">Sign in with Gmail</span>
     </a>
 </div>

@@ -81,7 +81,7 @@ async def login(request: Request):
 
 
 # Define a list of allowed email addresses
-ALLOWED_EMAILS = ["aarjav.jain@gmail.com", "mojamil2000@gmail.com"]
+ALLOWED_EMAILS = ["aarjav.jain@gmail.com", "mojamil2000@gmail.com", "adilsaheil1999@gmail.com"]
 
 @app.get('/auth', name='auth')
 async def auth(request: Request):
