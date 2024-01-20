@@ -12,7 +12,7 @@ cloudbuild-and-deploy: get-secrets build-image deploy-image
 # Step to build the Docker image
 local-build-image:
 	podman build -t $(IMAGE_NAME) \
-	--build-arg TWILIO_SID=$(TWILIO_SID),TWILIO_AUTH_TOKEN=$(TWILIO_AUTH_TOKEN),GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID),GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET),SECRET_KEY=$(SECRET_KEY) \
+	--build-arg TWILIO_SID=$(TWILIO_SID),TWILIO_AUTH_TOKEN=$(TWILIO_AUTH_TOKEN),GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID),GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET),SECRET_KEY=$(SECRET_KEY),SF_ID=$(SF_ID),SF_SECRET=$(SF_SECRET),WIX_CLIENT_ID=$(WIX_CLIENT_ID),WIX_CLIENT_SECRET=$(WIX_CLIENT_SECRET) \
 	..
 
 
@@ -36,11 +36,19 @@ get-secrets:
 	GOOGLE_CLIENT_ID=$$(gcloud secrets versions access latest --secret=GOOGLE_CLIENT_ID) && \
 	GOOGLE_CLIENT_SECRET=$$(gcloud secrets versions access latest --secret=GOOGLE_CLIENT_SECRET) && \
 	SECRET_KEY=$$(gcloud secrets versions access latest --secret=SECRET_KEY) && \
+	SF_ID=$$(gcloud secrets versions access latest --secret=SF_ID) && \
+	SF_SECRET=$$(gcloud secrets versions access latest --secret=SF_SECRET) && \
+	WIX_CLIENT_ID=$$(gcloud secrets versions access latest --secret=WIX_CLIENT_ID) && \
+	WIX_CLIENT_SECRET=$$(gcloud secrets versions access latest --secret=WIX_CLIENT_SECRET) && \
 	export TWILIO_SID && \
 	export TWILIO_AUTH_TOKEN && \
 	export GOOGLE_CLIENT_ID && \
 	export GOOGLE_CLIENT_SECRET && \
-	export SECRET_KEY
+	export SECRET_KEY && \
+	export SF_ID && \
+	export SF_SECRET && \
+	export WIX_CLIENT_ID && \
+	export WIX_CLIENT_SECRET
 
 
 run-server:
@@ -59,5 +67,5 @@ deploy-image:
 	gcloud run deploy ${IDENTIFIER} \
 	--image "europe-docker.pkg.dev/${PROJECT_ID}/docker/${IDENTIFIER}:latest" \
 	--region ${CLOUD_RUN_LOCATION} \
-	--set-secrets TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,TWILIO_SID=TWILIO_SID:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,SECRET_KEY=SECRET_KEY:latest \
+	--set-secrets TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,TWILIO_SID=TWILIO_SID:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,SECRET_KEY=SECRET_KEY:latest,SF_ID=SF_ID:latest,SF_SECRET=SF_SECRET:latest,WIX_CLIENT_ID=WIX_CLIENT_ID:latest,WIX_CLIENT_SECRET=WIX_CLIENT_SECRET:latest \
 	--allow-unauthenticated
