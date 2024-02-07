@@ -70,6 +70,7 @@ async def wix_booking(access_token: str, fromDate: str = None, toDate: str = Non
     #
     # }
 
+
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
     response.raise_for_status()
